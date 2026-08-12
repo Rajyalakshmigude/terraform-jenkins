@@ -29,7 +29,7 @@ pipeline {
                 ]) {
 
                     sh '''
-                        terraform init
+                        terraform init -input=false
                     '''
                 }
             }
@@ -56,7 +56,7 @@ pipeline {
                 ]) {
 
                     sh '''
-                        terraform plan -out=tfplan
+                        terraform plan -input=false -out=tfplan
                     '''
                 }
             }
@@ -146,7 +146,7 @@ Jenkins
                 ]) {
 
                     sh '''
-                        terraform apply -auto-approve tfplan
+                        terraform apply -input=false -auto-approve tfplan
                     '''
                 }
             }
@@ -156,24 +156,12 @@ Jenkins
     post {
 
         success {
-
             echo 'Terraform infrastructure successfully created.'
-
         }
 
         failure {
-
             echo 'Terraform pipeline failed or deployment was denied.'
-
         }
-
-        aborted {
-
-            echo 'Terraform deployment was stopped.'
-
-        }
-    }
-}
 
         aborted {
             echo 'Terraform deployment was stopped.'
