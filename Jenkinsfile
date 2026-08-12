@@ -4,20 +4,22 @@ pipeline {
 
     environment {
         AWS_REGION = 'us-east-1'
+        AWS_DEFAULT_REGION = 'us-east-1'
         TF_IN_AUTOMATION = 'true'
     }
 
     stages {
 
-        stage("git-checkout") {
+        stage("Git Checkout") {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/Rajareddy9704/terraform-jenkins.git'
             }
         }
 
-        stage("Terraform init") {
+        stage("Terraform Init") {
             steps {
+
                 withCredentials([
                     aws(
                         accessKeyVariable: 'AWS_ACCESS_KEY_ID',
@@ -25,6 +27,7 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     )
                 ]) {
+
                     sh '''
                         terraform init
                     '''
@@ -32,15 +35,16 @@ pipeline {
             }
         }
 
-        stage("Terraform validate") {
+        stage("Terraform Validate") {
             steps {
+
                 sh '''
                     terraform validate
                 '''
             }
         }
 
-        stage("Terraform plan") {
+        stage("Terraform Plan") {
             steps {
 
                 withCredentials([
@@ -58,20 +62,32 @@ pipeline {
             }
 
             post {
-                success {
-                    emailext(
-                        subject: 'Terraform Approval Required - ${JOB_NAME} #${BUILD_NUMBER}',
-                        body: '''Terraform Plan completed successfully.
 
-Manual approval is required.
+                success {
+
+                    emailext(
+                        subject: "Terraform Approval Required - ${JOB_NAME} #${BUILD_NUMBER}",
+
+                        body: """Hello,
+
+Terraform Plan completed successfully.
+
+Manual approval is required before Terraform Apply.
 
 Job: ${JOB_NAME}
-Build: ${BUILD_NUMBER}
+Build Number: ${BUILD_NUMBER}
 
 Please open Jenkins and choose ACCEPT or DENY.
 
 Jenkins Build URL:
-${BUILD_URL}''',
+${BUILD_URL}
+
+Terraform Apply will execute only after ACCEPT.
+
+Thanks,
+Jenkins
+""",
+
                         to: 'rajashekarreddybhumireddy@gmail.com'
                     )
                 }
@@ -79,14 +95,19 @@ ${BUILD_URL}''',
         }
 
         stage("Manual Approval") {
+
             steps {
 
-                timeout(time: 10, unit: 'MINUTES') {
+                timeout(
+                    time: 10,
+                    unit: 'MINUTES'
+                ) {
 
                     script {
 
                         def approval = input(
-                            message: 'Terraform Plan completed. Choose ACCEPT or DENY.',
+                            message: 'Terraform Plan completed. Do you want to continue?',
+                            ok: 'Submit',
                             parameters: [
                                 choice(
                                     name: 'ACTION',
@@ -97,16 +118,23 @@ ${BUILD_URL}''',
                         )
 
                         if (approval == 'DENY') {
-                            error('Terraform deployment DENIED by approver.')
-                        }
 
-                        echo 'Terraform deployment ACCEPTED.'
+                            error(
+                                'Terraform deployment DENIED by approver.'
+                            )
+
+                        } else {
+
+                            echo 'Terraform deployment ACCEPTED.'
+
+                        }
                     }
                 }
             }
         }
 
-        stage("Terraform apply") {
+        stage("Terraform Apply") {
+
             steps {
 
                 withCredentials([
@@ -128,12 +156,24 @@ ${BUILD_URL}''',
     post {
 
         success {
+
             echo 'Terraform infrastructure successfully created.'
+
         }
 
         failure {
+
             echo 'Terraform pipeline failed or deployment was denied.'
+
         }
+
+        aborted {
+
+            echo 'Terraform deployment was stopped.'
+
+        }
+    }
+}
 
         aborted {
             echo 'Terraform deployment was stopped.'
