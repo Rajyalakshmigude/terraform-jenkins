@@ -12,6 +12,7 @@ pipeline {
 
         stage("Git Checkout") {
             steps {
+
                 git branch: 'main',
                     url: 'https://github.com/Rajareddy9704/terraform-jenkins.git'
             }
@@ -66,7 +67,7 @@ pipeline {
                 success {
 
                     emailext(
-                        subject: "Terraform Approval Required - ${JOB_NAME} #${BUILD_NUMBER}",
+                        subject: "Terraform Approval Required - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
 
                         body: """Hello,
 
@@ -74,13 +75,13 @@ Terraform Plan completed successfully.
 
 Manual approval is required before Terraform Apply.
 
-Job: ${JOB_NAME}
-Build Number: ${BUILD_NUMBER}
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
 
 Please open Jenkins and choose ACCEPT or DENY.
 
 Jenkins Build URL:
-${BUILD_URL}
+${env.BUILD_URL}
 
 Terraform Apply will execute only after ACCEPT.
 
@@ -108,6 +109,7 @@ Jenkins
                         def approval = input(
                             message: 'Terraform Plan completed. Do you want to continue?',
                             ok: 'Submit',
+
                             parameters: [
                                 choice(
                                     name: 'ACTION',
@@ -126,7 +128,6 @@ Jenkins
                         } else {
 
                             echo 'Terraform deployment ACCEPTED.'
-
                         }
                     }
                 }
@@ -156,14 +157,17 @@ Jenkins
     post {
 
         success {
+
             echo 'Terraform infrastructure successfully created.'
         }
 
         failure {
+
             echo 'Terraform pipeline failed or deployment was denied.'
         }
 
         aborted {
+
             echo 'Terraform deployment was stopped.'
         }
     }
