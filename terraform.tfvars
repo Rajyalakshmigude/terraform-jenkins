@@ -1,5 +1,5 @@
 region = "ap-south-2"
-ami_id = "ami-0bdc7d025135d7b49"
+ami_id = "ami-0304448c82662e9ac"
 instance_type = "t3.micro"
-key_name = "nv-key"
+key_name = "Raji"
 ec2_tag = "terraform-cicd"
