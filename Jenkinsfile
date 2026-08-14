@@ -3,8 +3,8 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = 'us-east-1'
-        AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_REGION = 'ap-south-2'
+        AWS_DEFAULT_REGION = 'ap-south-2'
         TF_IN_AUTOMATION = 'true'
     }
 
