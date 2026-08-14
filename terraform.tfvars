@@ -1,4 +1,4 @@
-region = "us-east-1"
+region = "ap-south-2"
 ami_id = "ami-0bdc7d025135d7b49"
 instance_type = "t3.micro"
 key_name = "nv-key"
